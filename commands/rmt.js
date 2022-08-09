@@ -6,6 +6,7 @@ module.exports =
 	data: new SlashCommandBuilder()
 	.setName('rmt')
 	.setDescription('Paste a team to rate!'),
+	messages: {},
 	async execute(interaction)
 	{
 		const modal = new ModalBuilder().setCustomId('rmtModal').setTitle('Rate My Team!');
@@ -26,10 +27,76 @@ module.exports =
 		const description = interaction.fields.getTextInputValue('rmtDescription');
 		const struggles = interaction.fields.getTextInputValue('rmtStruggles');
 		const details = interaction.fields.getTextInputValue('rmtDetails');
-		const embed = new EmbedBuilder().setTitle('Rate My Team!').setAuthor(interaction.member.user.username).setDescription(`**Paste:** ${paste}\n\n**Summary:**\n\n${description}\n\n**Struggles:**\n\n${struggles}\n\n**Special Details:**\n${details}`);
+		const embed = new EmbedBuilder().setTitle('Rate My Team!').setAuthor({name: interaction.member.user.username}).setDescription(`**Paste:** ${paste}\n\n**Summary:**\n\n${description}\n\n**Struggles:**\n\n${struggles}\n\n**Special Details:**\n${details}`);
 		await interaction.reply({embeds: [embed]});
 		const message = await interaction.fetchReply();
-		const thread = await message.startThread({name: `${interaction.member.user.username}'s RMT`, authoArchiveDuration: 60, reason: 'RMT Thread'});
+		const thread = await message.startThread({name: `${interaction.member.user.username}'s RMT`, autoArchiveDuration: 60, reason: 'RMT Thread'});
+		const row0 = new ActionRowBuilder();
+		const row1 = new ActionRowBuilder();
+		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon1`).setLabel('Zacian-Crowned').setStyle(ButtonStyle.Primary));
+		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon2`).setLabel('Kyogre').setStyle(ButtonStyle.Primary));
+		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon3`).setLabel('Thundurus').setStyle(ButtonStyle.Primary));
+		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon4`).setLabel('Whimsicott').setStyle(ButtonStyle.Primary));
+		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon5`).setLabel('Incineroar').setStyle(ButtonStyle.Primary));
+		row1.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon6`).setLabel('Amoonguss').setStyle(ButtonStyle.Primary));
+		row1.addComponents(new ButtonBuilder().setCustomId(`rmtShowAll`).setLabel('Show Team').setStyle(ButtonStyle.Primary));
+		const threadMessage = await thread.send({components: [row0, row1]});
+		this.messages[threadMessage.id] = await this.ScrapePokemon(paste);
 	},
+	async ShowPokemon(interaction)
+	{
+		if(Object.keys(this.messages).includes(interaction.message.id))
+		{
+			const num = parseInt(interaction.customId[10]);
+			const embed = this.messages[interaction.message.id][`pokemon${num}`].toEmbed();
+			await interaction.reply({embeds: [embed], ephemeral: true});
+		}
+	},
+	async ShowAllPokemon(interaction)
+	{
+		if(Object.keys(this.messages).includes(interaction.message.id))
+		{
+			let pokemonEmbeds = [];
+			for(pokemon = 0; pokemon < Object.keys(this.messages[interaction.message.id]).length; pokemon++)
+			{
+				pokemonEmbeds.push(this.messages[interaction.message.id][Object.keys(this.messages[interaction.message.id])[pokemon]].toEmbed());
+			}
+			await interaction.reply({embeds: pokemonEmbeds, ephemeral: true});
+		}
+	},
+	async ScrapePokemon(url)
+	{
+		const Pokemon1 = new Pokemon('Zacian-Crowned', 'Rusted Sword', 'Intrepid Sword', '50', '252 Atk / 4 SpD / 252 Spe', 'Jolly', 'Behemoth Blade', 'Play Rough', 'Protect', 'Sacred Sword', 'https://pokepast.es/img/pokemon/888-1.png');
+		const Pokemon2 = new Pokemon('Kyogre', 'Mystic Water', 'Drizzle', '50', '252 SpA / 4 SpD / 252 Spe', 'Timid', 'Origin Pulse', 'Scald', 'Ice Beam', 'Protect', 'https://pokepast.es/img/pokemon/382-0.png');
+		const Pokemon3 = new Pokemon('Thundurus', 'Life Orb', 'Defiant', '50', '252 Atk / 4 SpD / 252 Spe', 'Jolly', 'Wild Charge', 'Fly', 'U-Turn', 'Protect', 'https://pokepast.es/img/pokemon/642-0.png');
+		const Pokemon4 = new Pokemon('Whimsicott', 'Focus Sash', 'Prankster', '50', '4 HP / 252 SpA / 252 Spe', 'Timid', 'Tailwind', 'Moonblast', 'Taunt', 'Encore', 'https://pokepast.es/img/pokemon/547-0.png');
+		const Pokemon5 = new Pokemon('Incineroar', 'Sitrus Berry', 'Intimidate', '50', '252 HP / 4 Atk / 252 SpD', 'Careful', 'Flare Blitz', 'Darkest Lariat', 'Parting Shot', 'Fake Out', 'https://pokepast.es/img/pokemon/727-0.png');
+		const Pokemon6 = new Pokemon('Amoonguss', 'Coba Berry', 'Regenerator', '50', '236 HP / 116 Def / 156 SpD', 'Calm', 'Giga Drain', 'Spore', 'Rage Powder', 'Protect', 'https://pokepast.es/img/pokemon/591-0.png');
+		return {'pokemon1': Pokemon1, 'pokemon2': Pokemon2, 'pokemon3': Pokemon3, 'pokemon4': Pokemon4, 'pokemon5': Pokemon5, 'pokemon6': Pokemon6};
+	}
 	
 };
+
+
+class Pokemon
+{
+	constructor(name, item, ability, level, evs, nature, move1, move2, move3, move4, thumbnail)
+	{
+		this.name = name;
+		this.item = item;
+		this.ability = ability;
+		this.level = level;
+		this.evs = evs;
+		this.nature = nature;
+		this.move1 = move1;
+		this.move2 = move2;
+		this.move3 = move3;
+		this.move4 = move4;
+		this.thumbnail = thumbnail;
+	}
+	toEmbed()
+	{
+		const embed = new EmbedBuilder().setTitle(`${this.name} @ ${this.item}`).setDescription(`Ability: ${this.ability}\nLevel: ${this.level}\nEVs: ${this.evs}\n${this.nature} Nature\n- ${this.move1}\n- ${this.move2}\n- ${this.move3}\n- ${this.move4}`).setThumbnail(`${this.thumbnail}`);
+		return embed;
+	}
+}

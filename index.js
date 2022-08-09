@@ -43,6 +43,14 @@ client.on('interactionCreate', async interaction =>
 client.on('interactionCreate', async interaction =>
 {
 	if(!interaction.isButton()) return;
+	if(interaction.customId.startsWith(`rmtPokemon`))
+	{
+		await client.commands.get('rmt').ShowPokemon(interaction);
+	}
+	else if(interaction.customId == 'rmtShowAll')
+	{
+		await client.commands.get('rmt').ShowAllPokemon(interaction);
+	}
 	
 });
 
@@ -50,11 +58,6 @@ client.on('interactionCreate', async interaction =>
 client.on('interactionCreate', async interaction =>
 {
 	if(!interaction.isSelectMenu()) return;
-	//if(interaction.customId === 'rolldie')
-	//{
-	//	await interaction.reply(String(Math.floor((Math.random()*Number(interaction.values[0])))+1));
-	//}
-
 
 });
 
