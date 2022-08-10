@@ -1,5 +1,8 @@
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {ActionRowBuilder, SelectMenuBuilder, ButtonBuilder, ButtonStyle, SelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder} = require('discord.js');
+const axios = require('axios');
+const jsdom = require('jsdom');
+
 
 module.exports = 
 {
@@ -23,25 +26,39 @@ module.exports =
 	},
 	async Submit(interaction)
 	{
-		const paste = interaction.fields.getTextInputValue('rmtPokepasteInput');
-		const description = interaction.fields.getTextInputValue('rmtDescription');
-		const struggles = interaction.fields.getTextInputValue('rmtStruggles');
-		const details = interaction.fields.getTextInputValue('rmtDetails');
-		const embed = new EmbedBuilder().setTitle('Rate My Team!').setAuthor({name: interaction.member.user.username}).setDescription(`**Paste:** ${paste}\n\n**Summary:**\n\n${description}\n\n**Struggles:**\n\n${struggles}\n\n**Special Details:**\n${details}`);
-		await interaction.reply({embeds: [embed]});
-		const message = await interaction.fetchReply();
-		const thread = await message.startThread({name: `${interaction.member.user.username}'s RMT`, autoArchiveDuration: 60, reason: 'RMT Thread'});
-		const row0 = new ActionRowBuilder();
-		const row1 = new ActionRowBuilder();
-		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon1`).setLabel('Zacian-Crowned').setStyle(ButtonStyle.Primary));
-		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon2`).setLabel('Kyogre').setStyle(ButtonStyle.Primary));
-		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon3`).setLabel('Thundurus').setStyle(ButtonStyle.Primary));
-		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon4`).setLabel('Whimsicott').setStyle(ButtonStyle.Primary));
-		row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon5`).setLabel('Incineroar').setStyle(ButtonStyle.Primary));
-		row1.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon6`).setLabel('Amoonguss').setStyle(ButtonStyle.Primary));
-		row1.addComponents(new ButtonBuilder().setCustomId(`rmtShowAll`).setLabel('Show Team').setStyle(ButtonStyle.Primary));
-		const threadMessage = await thread.send({components: [row0, row1]});
-		this.messages[threadMessage.id] = await this.ScrapePokemon(paste);
+		try
+		{
+			const paste = interaction.fields.getTextInputValue('rmtPokepasteInput');
+			const description = interaction.fields.getTextInputValue('rmtDescription');
+			const struggles = interaction.fields.getTextInputValue('rmtStruggles');
+			const details = interaction.fields.getTextInputValue('rmtDetails');
+			const embed = new EmbedBuilder().setTitle('Rate My Team!').setAuthor({name: interaction.member.user.username}).setDescription(`**Paste:** ${paste}\n\n**Summary:**\n\n${description}\n\n**Struggles:**\n\n${struggles}\n\n**Special Details:**\n${details}`);
+			await interaction.reply({embeds: [embed]});
+			const message = await interaction.fetchReply();
+			const thread = await message.startThread({name: `${interaction.member.user.username}'s RMT`, autoArchiveDuration: 60, reason: 'RMT Thread'});
+			const team = await this.ScrapePokemon(paste);
+			const row0 = new ActionRowBuilder();
+			const row1 = new ActionRowBuilder();
+			for(let pokemon = 0; pokemon < Object.keys(team).length; pokemon++)
+			{
+				if(pokemon < 5)
+				{
+					row0.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon${pokemon+1}`).setLabel(team[`pokemon${pokemon+1}`].name).setStyle(ButtonStyle.Primary));
+				}
+				else
+				{
+					row1.addComponents(new ButtonBuilder().setCustomId(`rmtPokemon${pokemon+1}`).setLabel(team[`pokemon${pokemon+1}`].name).setStyle(ButtonStyle.Primary));
+				}
+			}
+			row1.addComponents(new ButtonBuilder().setCustomId(`rmtShowAll`).setLabel('Show Team').setStyle(ButtonStyle.Primary));
+			const threadMessage = await thread.send({components: [row0, row1]});
+			this.messages[threadMessage.id] = team;
+		}
+		catch(error)
+		{
+			console.log(error);
+			await interaction.followUp({content: 'There was a problem with your paste!', ephemeral: true});
+		}
 	},
 	async ShowPokemon(interaction)
 	{
@@ -66,13 +83,137 @@ module.exports =
 	},
 	async ScrapePokemon(url)
 	{
-		const Pokemon1 = new Pokemon('Zacian-Crowned', 'Rusted Sword', 'Intrepid Sword', 50, 'Jolly', 'Behemoth Blade', 'Play Rough', 'Protect', 'Sacred Sword', 'https://pokepast.es/img/pokemon/888-1.png', hpEV="0", atkEV="252", defEV="0", spaEV="0", spdEV="4", speEV="252");
-		//const Pokemon2 = new Pokemon('Kyogre', 'Mystic Water', 'Drizzle', 50, '252 SpA / 4 SpD / 252 Spe', 'Timid', 'Origin Pulse', 'Scald', 'Ice Beam', 'Protect', 'https://pokepast.es/img/pokemon/382-0.png');
-		//const Pokemon3 = new Pokemon('Thundurus', 'Life Orb', 'Defiant', 50, '252 Atk / 4 SpD / 252 Spe', 'Jolly', 'Wild Charge', 'Fly', 'U-Turn', 'Protect', 'https://pokepast.es/img/pokemon/642-0.png');
-		//const Pokemon4 = new Pokemon('Whimsicott', 'Focus Sash', 'Prankster', 50, '4 HP / 252 SpA / 252 Spe', 'Timid', 'Tailwind', 'Moonblast', 'Taunt', 'Encore', 'https://pokepast.es/img/pokemon/547-0.png');
-		//const Pokemon5 = new Pokemon('Incineroar', 'Sitrus Berry', 'Intimidate', 50, '252 HP / 4 Atk / 252 SpD', 'Careful', 'Flare Blitz', 'Darkest Lariat', 'Parting Shot', 'Fake Out', 'https://pokepast.es/img/pokemon/727-0.png');
-		//const Pokemon6 = new Pokemon('Amoonguss', 'Coba Berry', 'Regenerator', 50, '236 HP / 116 Def / 156 SpD', 'Calm', 'Giga Drain', 'Spore', 'Rage Powder', 'Protect', 'https://pokepast.es/img/pokemon/591-0.png');
-		return {'pokemon1': Pokemon1};//, 'pokemon2': Pokemon2, 'pokemon3': Pokemon3, 'pokemon4': Pokemon4, 'pokemon5': Pokemon5, 'pokemon6': Pokemon6};
+		try
+		{
+			const response = await axios.get(url);
+			const dom = new jsdom.JSDOM(response.data);
+			const doc = dom.window.document;
+			const articles = doc.querySelectorAll('article');
+			const pokemon = [];
+			for(let article = 0; article < articles.length; article++)
+			{
+				const text = articles[article].textContent;
+				const lines = text.split('\n');
+				let lineIndex = 0;
+				for(let line = 0; line < lines.length; line++)
+				{
+					if(lines[line].includes('@'))
+					{
+						lineIndex = line;
+						break;
+					}
+				}
+	
+				const name = lines[lineIndex].split('@')[0].trim();
+				const item = lines[lineIndex].split('@')[1].trim();
+				const ability = lines[lineIndex+1].split(':')[1].trim();
+				const level = lines[lineIndex+2].split(':')[1].trim();
+				const evString = lines[lineIndex+3].split(':')[1].trim();
+				const nature = lines[lineIndex+4].split(' ')[0].trim();
+				let ivString = '';
+				let move1 = '';
+				let move2 = '';
+				let move3 = '';
+				let move4 = '';
+				if(lines[lineIndex+5].includes('IVs:'))
+				{
+					ivString = lines[lineIndex+5].split(':')[1].trim();
+					move1 = lines[lineIndex+6].split('-')[1].trim();
+					move2 = lines[lineIndex+7].split('-')[1].trim();
+					move3 = lines[lineIndex+8].split('-')[1].trim();
+					move4 = lines[lineIndex+9].split('-')[1].trim();
+				}
+				else
+				{
+					move1 = lines[lineIndex+5].split('-')[1].trim();
+					move2 = lines[lineIndex+6].split('-')[1].trim();
+					move3 = lines[lineIndex+7].split('-')[1].trim();
+					move4 = lines[lineIndex+8].split('-')[1].trim();
+				}
+				let hpEV = 0;
+				let atkEV = 0;
+				let defEV = 0;
+				let spaEV = 0;
+				let spdEV = 0;
+				let speEV = 0;
+				const evList = evString.split('/');
+				for(let ev = 0; ev < evList.length; ev++)
+				{
+					if(evList[ev].includes('HP'))
+					{
+						hpEV = evList[ev].trim().split(' ')[0].trim();
+					}
+					else if(evList[ev].trim().includes('Atk'))
+					{
+						atkEV = evList[ev].trim().split(' ')[0].trim();
+					}
+					else if(evList[ev].trim().includes('Def'))
+					{
+						defEV = evList[ev].trim().split(' ')[0].trim();
+					}
+					else if(evList[ev].trim().includes('SpA'))
+					{
+						spaEV = evList[ev].trim().split(' ')[0].trim();
+					}
+					else if(evList[ev].includes('SpD'))
+					{
+						spdEV = evList[ev].trim().split(' ')[0].trim();
+					}
+					else if(evList[ev].trim().includes('Spe'))
+					{
+						speEV = evList[ev].trim().split(' ')[0].trim();
+					}
+				}
+				let hpIV = 31;
+				let atkIV = 31;
+				let defIV = 31;
+				let spaIV = 31;
+				let spdIV = 31;
+				let speIV = 31;
+				const ivList = ivString.split('/');
+				for(let iv = 0; iv < ivList.length; iv++)
+				{
+					if(ivList[iv].includes('HP'))
+					{
+						hpIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+					else if(ivList[iv].includes('Atk'))
+					{
+						atkIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+					else if(ivList[iv].includes('Def'))
+					{
+						defIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+					else if(ivList[iv].includes('SpA'))
+					{
+						spaIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+					else if(ivList[iv].includes('SpD'))
+					{
+						spdIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+					else if(ivList[iv].includes('Spe'))
+					{
+						speIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
+					}
+				}
+				const image = `https://pokepast.es/${articles[article].childNodes[1].childNodes[1].src}`;
+				pokemon.push(new Pokemon(name, item, ability, parseInt(level), nature, move1, move2, move3, move4, image, hpEV, atkEV, defEV, spaEV, spdEV, speEV, hpIV, atkIV, defIV, spaIV, spdIV, speIV));
+			}
+			let team = {};
+			for(let mon = 0; mon < pokemon.length; mon++)
+			{
+				team[`pokemon${mon+1}`] = pokemon[mon];
+			}
+			return team;
+		}
+		//return {'pokemon1': Pokemon1};//, 'pokemon2': Pokemon2, 'pokemon3': Pokemon3, 'pokemon4': Pokemon4, 'pokemon5': Pokemon5, 'pokemon6': Pokemon6};
+		catch(error)
+		{
+			console.log(error);
+			return {};
+		}
 	}
 	
 };
