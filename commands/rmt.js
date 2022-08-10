@@ -94,7 +94,8 @@ module.exports =
 			{
 				const text = articles[article].textContent;
 				const lines = text.split('\n');
-				let lineIndex = 0;
+				console.log(lines);
+				let lineIndex = 4;
 				for(let line = 0; line < lines.length; line++)
 				{
 					if(lines[line].includes('@'))
@@ -103,13 +104,49 @@ module.exports =
 						break;
 					}
 				}
-	
-				const name = lines[lineIndex].split('@')[0].trim();
-				const item = lines[lineIndex].split('@')[1].trim();
+				const name = lines[lineIndex].split('@')[0].replace('(M)', '').replace('(F)', '').replace('-Gmax', '').trim();
+				let item = '';
+				try
+				{
+					item = lines[lineIndex].split('@')[1].trim();
+				}
+				catch(error)
+				{
+					console.log(error)
+				}
 				const ability = lines[lineIndex+1].split(':')[1].trim();
-				const level = lines[lineIndex+2].split(':')[1].trim();
-				const evString = lines[lineIndex+3].split(':')[1].trim();
-				const nature = lines[lineIndex+4].split(' ')[0].trim();
+				let level = '50';
+				if(lines[lineIndex+2].includes('Level'))
+				{
+					level = lines[lineIndex+2].split(':')[1].trim();
+				}
+				else
+				{
+					lineIndex--;
+				}
+				let shinyString = '';
+				if(lines[lineIndex+3].includes('Shiny'))
+				{
+					lineIndex++;
+				}
+				let evString = '';
+				try
+				{
+					evString = lines[lineIndex+3].split(':')[1].trim();
+				}
+				catch(error)
+				{
+					console.log(error);
+				}
+				let nature = '';
+				try
+				{
+					nature = lines[lineIndex+4].split(' ')[0].trim();
+				} 
+				catch(error)
+				{
+					console.log(error);
+				}
 				let ivString = '';
 				let move1 = '';
 				let move2 = '';
@@ -118,17 +155,73 @@ module.exports =
 				if(lines[lineIndex+5].includes('IVs:'))
 				{
 					ivString = lines[lineIndex+5].split(':')[1].trim();
-					move1 = lines[lineIndex+6].split('-')[1].trim();
-					move2 = lines[lineIndex+7].split('-')[1].trim();
-					move3 = lines[lineIndex+8].split('-')[1].trim();
-					move4 = lines[lineIndex+9].split('-')[1].trim();
+					try
+					{
+						move1 = lines[lineIndex+6].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move2 = lines[lineIndex+7].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move3 = lines[lineIndex+8].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move4 = lines[lineIndex+9].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
 				}
 				else
 				{
-					move1 = lines[lineIndex+5].split('-')[1].trim();
-					move2 = lines[lineIndex+6].split('-')[1].trim();
-					move3 = lines[lineIndex+7].split('-')[1].trim();
-					move4 = lines[lineIndex+8].split('-')[1].trim();
+					try
+					{
+						move1 = lines[lineIndex+5].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move2 = lines[lineIndex+6].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move3 = lines[lineIndex+7].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
+					try
+					{
+						move4 = lines[lineIndex+8].split('-').splice(1).join('-').trim();
+					}
+					catch(error)
+					{
+						console.log(error);
+					}
 				}
 				let hpEV = 0;
 				let atkEV = 0;
