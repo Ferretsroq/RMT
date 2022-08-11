@@ -132,7 +132,14 @@ module.exports =
 				let evString = '';
 				try
 				{
-					evString = lines[lineIndex+3].split(':')[1].trim();
+					if(lines[lineIndex+3].includes('EVs:'))
+					{
+						evString = lines[lineIndex+3].split(':')[1].trim();
+					}
+					else
+					{
+						lineIndex--;
+					}
 				}
 				catch(error)
 				{
@@ -141,7 +148,14 @@ module.exports =
 				let nature = '';
 				try
 				{
-					nature = lines[lineIndex+4].split(' ')[0].trim();
+					if(lines[lineIndex+4].includes(' Nature'))
+					{
+						nature = lines[lineIndex+4].split(' ')[0].trim();
+					}
+					else
+					{
+						lineIndex--
+					}
 				} 
 				catch(error)
 				{
@@ -368,9 +382,46 @@ class Pokemon
 		}
 		return evs.join(' / ');
 	}
+	formatIVs()
+	{
+		let ivs = [];
+		if(this.hpIV != 31)
+		{
+			ivs.push(`${this.hpIV} HP`);
+		}
+		if(this.atkIV != 31)
+		{
+			ivs.push(`${this.atkIV} Atk`);
+		}
+		if(this.defIV != 31)
+		{
+			ivs.push(`${this.defIV} Def`);
+		}
+		if(this.spaIV != 31)
+		{
+			ivs.push(`${this.spaIV} SpA`);
+		}
+		if(this.spdIV != 31)
+		{
+			ivs.push(`${this.spdIV} SpD`);
+		}
+		if(this.speIV != 31)
+		{
+			ivs.push(`${this.speIV} Spe`);
+		}
+		if(ivs.length == 0)
+		{
+			return ''
+		}
+		else
+		{
+			return 'IVs: ' + ivs.join(' / ');
+		}
+
+	}
 	toEmbed()
 	{
-		const embed = new EmbedBuilder().setTitle(`${this.name} @ ${this.item}`).setDescription(`Ability: ${this.ability}\nLevel: ${this.level}\nEVs: ${this.formatEVs()}\n${this.nature} Nature\n- ${this.move1}\n- ${this.move2}\n- ${this.move3}\n- ${this.move4}\n\n[Calc me!](https://pikalytics.com/calc?attSet=${this.toURI()})`).setThumbnail(`${this.thumbnail}`);
+		const embed = new EmbedBuilder().setTitle(`${this.name} @ ${this.item}`).setDescription(`Ability: ${this.ability}\nLevel: ${this.level}\nEVs: ${this.formatEVs()}\n${this.nature} Nature\n${this.formatIVs()}\n- ${this.move1}\n- ${this.move2}\n- ${this.move3}\n- ${this.move4}\n\n[Calc me!](https://pikalytics.com/calc?attSet=${this.toURI()})`).setThumbnail(`${this.thumbnail}`);
 		return embed;
 	}
 	toURI()
