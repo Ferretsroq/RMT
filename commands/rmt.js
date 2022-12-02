@@ -305,7 +305,15 @@ module.exports =
 						speIV = parseInt(ivList[iv].trim().split(' ')[0].trim());
 					}
 				}
-				const image = `https://pokepast.es/${articles[article].childNodes[1].childNodes[1].src}`;
+				let image = '';
+				try
+				{
+					image = `https://pokepast.es/${articles[article].childNodes[1].childNodes[1].src}`;
+				}
+				catch
+				{
+					image = '';
+				}
 				pokemon.push(new Pokemon(name, item, ability, parseInt(level), nature, move1, move2, move3, move4, image, hpEV, atkEV, defEV, spaEV, spdEV, speEV, hpIV, atkIV, defIV, spaIV, spdIV, speIV));
 			}
 			let team = {};
